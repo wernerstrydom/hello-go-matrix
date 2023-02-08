@@ -1,0 +1,47 @@
+name: Go package
+
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      max-parallel: 2
+      matrix:  
+        include:
+          - GOOS: darwin
+            GOARCH: amd64
+            output: hello
+          - GOOS: darwin
+            GOARCH: arm64
+            output: hello
+          - GOOS: linux
+            GOARCH: amd64
+            output: hello
+          - GOOS: linux
+            GOARCH: arm64
+            output: hello
+          - GOOS: windows
+            GOARCH: amd64
+            output: hello.exe
+          - GOOS: windows
+            GOARCH: '386'
+            output: hello.exe
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.15
+
+      - name: Build
+        run: go build -o "bin/${{ env.GOOS }}/${{ env.GOARCH }}/${{ env.EXECUTABLE_PATH }}" -v ./...
+        env:
+          GOOS: ${{ matrix.GOOS }}
+          GOARCH: ${{ matrix.GOARCH }}
+          EXECUTABLE_PATH: ${{ matrix.output }}
+
+      - name: Test
+        run: go test -v ./...

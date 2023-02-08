@@ -34,13 +34,14 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.15
+          go-version: 1.19
 
       - name: Build
         run: go build -o "bin/${{ env.GOOS }}/${{ env.GOARCH }}/${{ env.EXECUTABLE_PATH }}" -v ./...
         env:
           GOOS: ${{ matrix.GOOS }}
           GOARCH: ${{ matrix.GOARCH }}
+          CGO_ENABLED: 0 
           EXECUTABLE_PATH: ${{ matrix.output }}
 
       - name: Test

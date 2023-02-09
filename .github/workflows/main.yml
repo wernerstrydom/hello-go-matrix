@@ -74,8 +74,16 @@ jobs:
           CGO_ENABLED: 0 
           EXECUTABLE_PATH: ${{ matrix.output }}
 
+      - name: Package
+        run: zip -r -q "hello-${{ env.GOOS }}-${{ env.GOARCH }}.zip" "bin/${{ env.GOOS }}/${{ env.GOARCH }}/${{ env.EXECUTABLE_PATH }}"
+        env:
+          GOOS: ${{ matrix.GOOS }}
+          GOARCH: ${{ matrix.GOARCH }}
+          CGO_ENABLED: 0 
+          EXECUTABLE_PATH: ${{ matrix.output }}
+
       - name: Publish 
-        run: gh release upload "v0.1.${{github.run_number}}" "bin/${{ env.GOOS }}/${{ env.GOARCH }}/${{ env.EXECUTABLE_PATH }}#${{ env.ASSET_LABEL }}"
+        run: gh release upload "v0.1.${{github.run_number}}" "hello-${{ env.GOOS }}-${{ env.GOARCH }}.zip#${{ env.ASSET_LABEL }}"
         env:
           GOOS: ${{ matrix.GOOS }}
           GOARCH: ${{ matrix.GOARCH }}

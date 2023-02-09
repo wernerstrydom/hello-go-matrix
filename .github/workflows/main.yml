@@ -1,31 +1,60 @@
-name: Go package
+name: Main
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -v ./...
+
+      - name: Create Release
+        run: gh release create --prerelease --title "v0.1.${{github.run_number}}" --notes "bla" "v0.1.${{github.run_number}}"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
   build:
     strategy:
-      max-parallel: 2
       matrix:  
         include:
           - GOOS: darwin
             GOARCH: amd64
             output: hello
+            LABEL: "macOS (amd64)"
           - GOOS: darwin
             GOARCH: arm64
             output: hello
+            LABEL: "macOS (ARM)"
           - GOOS: linux
             GOARCH: amd64
             output: hello
+            LABEL: "Linux (amd64)"
           - GOOS: linux
             GOARCH: arm64
             output: hello
+            LABEL: "Linux (arm64)"
           - GOOS: windows
             GOARCH: amd64
             output: hello.exe
+            LABEL: "Windows (amd64)"
           - GOOS: windows
             GOARCH: '386'
             output: hello.exe
+            LABEL: "Windows (i386)"
 
     runs-on: ubuntu-latest
     steps:
@@ -44,5 +73,12 @@ jobs:
           CGO_ENABLED: 0 
           EXECUTABLE_PATH: ${{ matrix.output }}
 
-      - name: Test
-        run: go test -v ./...
+      - name: Publish 
+        run: gh release upload "v0.1.${{github.run_number}}" "bin/${{ env.GOOS }}/${{ env.GOARCH }}/${{ env.EXECUTABLE_PATH }}#${{ env.ASSET_LABEL }}"
+        env:
+          GOOS: ${{ matrix.GOOS }}
+          GOARCH: ${{ matrix.GOARCH }}
+          ASSET_LABEL: ${{ matrix.LABEL }}
+          CGO_ENABLED: 0 
+          EXECUTABLE_PATH: ${{ matrix.output }}
+          GITHUB_TOKEN: ${{ github.token }}
